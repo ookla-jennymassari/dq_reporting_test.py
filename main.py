@@ -11,7 +11,7 @@ curr_csid = 12705
 
 comp_csid = 12381
 
-df_metadata = f'''
+ts_curr = f'''
 SELECT
    date_trunc('seconds',ts.start_time)::timestamp without time zone as start_time,
    ca.time_zone,
@@ -55,7 +55,7 @@ AND ts.flag_valid = TRUE
 AND ts.carrier_id <> 478
 '''
 
-df_test_summary_metadata_csid = pd.read_sql_query(df_metadata, con=os.getenv('RSR_SVC_CONN'))
+df_ts_curr = pd.read_sql_query(ts_curr, con=os.getenv('RSR_SVC_CONN'))
 # print(df_test_summary_metadata_csid)
 
 
@@ -193,9 +193,10 @@ print(df_test_count)
 # q_2 = pd.read_sql_query(q_2, con=os.getenv('RSR_SVC_CONN'))
 # print(q_2)
 
-
+#########################################################################################################################
 #### Data Network Category (Download, Upload, LDRs)
-
+### The queries bellow are the same for both markets, US and UK
+### Create logic to run the query according to the market US or UK 
 network_category_curr = f'''
 with best_network_type as (
   select pro.product_period, c.friendly_name as carrier,
@@ -247,4 +248,107 @@ group by product_period, carrier, network
 order by carrier, case when network = '5G' then 1 when network = 'Mixed-5G' then 2 when network = 'LTE' then 3 when network = 'Non-LTE' then 4 end
 '''
 df_network_category_comp = pd.read_sql_query(network_category_comp, con=os.getenv('RSR_SVC_CONN'))
-print(df_network_category_comp)
+# print(df_network_category_comp)
+
+#######################################################################################################
+
+#### Download Network Technology
+###### DL LTE Current market Daily
+# Logic computed from dataframe ts_curr and ts_comp
+# outputs: dl_lte_curr, lte2, 
+
+
+##### DL LTE Overall
+#current market
+# Logic computed from dataframe created in Download Network Technology
+
+# PLOT GRAPH
+
+#compute the EOM table
+
+#### M2M VoLTE/VoNR/EPS Fallback
+
+###### VoLTE Comparison market Daily
+
+##### DL LTE Overall
+#current market
+
+#comparison market
+
+# PLOT GRAPH
+
+#compute the EOM table
+
+
+#### Mobile-to-Mobile Call Block
+###### M2M Block Rate Current market Daily
+
+###### M2M Block Rate Comparison market Daily
+
+#M2M Block Rate Overall
+
+#current market
+
+#comparison market
+
+# PLOT GRAPH
+
+#compute the M2M block EOM table
+
+
+
+#### Mobile-to-Mobile Call Drop
+###### M2M Drop Rate Current market
+
+###### M2M drop Rate Comparison market
+
+
+###### M2M drop Rate Comparison market Overall
+#current market
+
+#comparison market
+
+# PLOT GRAPH
+
+# Compute the EOM table
+
+# Create the table
+
+
+#### Download Throughput
+# PLOT GRAPH
+# EOM TABLE
+
+#### Upload Throughput
+# PLOT GRAPH
+#compute the EOM table
+
+#### Download Access Success
+# PLOT GRAPH
+#compute the EOM table
+
+#### Download Task Success
+# PLOT GRAPH
+#compute the EOM table
+
+
+### Notable Insights:
+# *	DL 5G
+# *	M2M block/drop 
+# *	Median DL/UL throughput 
+
+
+### Other Observations:
+# *	Access success 
+# *	Task Success rates 
+
+
+### Data Exclusion/Tracking Items:
+# * Excluded test(s) due to device issue: None
+# *	Other manual exclusions performed: None 
+
+
+### DQ Test Counts:
+
+
+#### File Location: [DQ-CSID](http://jira.rootmetrics.net:8080/browse/DQ-CSID)
