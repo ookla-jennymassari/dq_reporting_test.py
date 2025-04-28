@@ -29,3 +29,7 @@ Wave 03:
     * Upload Throughput - plot/ sheet
     * Download Access Success - plot/ sheet
     * Download Task Success - plot/ sheet
+
+Wave 04:
+
+- Visualization with streamlit
