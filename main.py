@@ -104,4 +104,12 @@ AND ts.carrier_id <> 478
 '''
 
 df_ts_comp = pd.read_sql_query(ts_comp, con=os.getenv('RSR_SVC_CONN'))
-print(df_ts_comp)
+# print(df_ts_comp)
+
+test_count = f'''
+SELECT * 
+FROM analytic.fn_dq_test_counts({curr_csid}) 
+'''
+
+df_test_count = pd.read_sql_query(test_count, con=os.getenv('RSR_SVC_CONN'))
+print(df_test_count)
