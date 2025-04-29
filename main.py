@@ -11,6 +11,40 @@ curr_csid = 12705
 
 comp_csid = 12381
 
+# Carrier colors dictionary:
+carrier_color_dict = {
+                        'Verizon': '#b00000',
+                        'AT&T': '#067ab4',
+                        'T-Mobile': '#e60076',
+                        'Sprint': '#ffaa00',
+                        'Dish': '#3F3F3F',
+                        'EE': '#2e9b9d',
+                        'O2': '#010066',
+                        'Three': '#000000',
+                        'Vodafone': '#f80000',
+                        'O2 UK': '#010066',
+                        'Three UK': '#000000',
+                        'Vodafone UK': '#f80000',
+                        'Sunrise': '#d0606f',
+                        'Swisscom': '#5b92cc',
+                        'Salt': '#56bf83',
+                        'ODIDO': '#FF7621',
+                        'KPN': '#FFBB00',
+                        'Vodafone NL': '#f80000',
+                        'KT': '#FF7621',
+                        'SK Telecom': '#FFBB00',
+                        'LG U+': '#f80000'
+                     }
+
+# Network type colors dictionary:
+dl_color_dict = {
+  '5G': '#009697', 
+  'Mixed-5G': '#3CB371', 
+  'LTE': '#58595b',
+  'Non-LTE': '#f4a460'
+}
+
+
 ts_curr = f'''
 SELECT
    date_trunc('seconds',ts.start_time)::timestamp without time zone as start_time,
@@ -117,7 +151,7 @@ df_test_count = pd.read_sql_query(test_count, con=os.getenv('RSR_SVC_CONN'))
 
 #  #### DL Network Category
 
-data_network_category = f'''
+dl_5g_curr = f'''
 WITH best_network_type AS (
     SELECT 
         pro.product_period, 
@@ -180,8 +214,74 @@ Where carrier not in ('Dish')
 GROUP BY product_period, carrier, dl_network
 ORDER BY carrier, case when dl_network = '5G' then 1 when dl_network = 'Mixed-5G' then 2 when dl_network = 'LTE' then 3 when dl_network = 'Non-LTE' then 4 end
 '''
-df_data_network_category = pd.read_sql_query(data_network_category, con=os.getenv('RSR_SVC_CONN'))
-print(df_data_network_category)
+df_dl_5g_curr = pd.read_sql_query(dl_5g_curr, con=os.getenv('RSR_SVC_CONN'))
+print(df_dl_5g_curr)
+
+dl_5g_comp = f'''
+WITH best_network_type AS (
+    SELECT 
+        pro.product_period, 
+        c.friendly_name AS carrier, 
+        md2.fn_get_best_network_type(
+            ts.test_type_id, 
+            ts.net_types, 
+            tea.network_types, 
+            tea.call_network_type, 
+            tea.nr_status_filtered, 
+            tea.nr_bearer_status_filtered,
+            tea.nr_bearer_allocation_status_filtered,
+            ','
+        ) AS best_network_type,
+        dsd_access_speed_median, 
+        dsd_effective_download_test_speed, 
+        dsd_throughput_max, 
+        percentage_access_success, 
+        percentage_task_success
+    FROM prod_rsr_partitions.test_event_aggr_{comp_csid} tea
+    JOIN prod_ms_partitions.test_summary_{comp_csid} ts USING (test_event_id)
+    JOIN md2.carriers c ON (c.carrier_id = ts.carrier_id)
+    JOIN md2.product_periods pro USING (product_period_id)
+    WHERE c.friendly_name NOT IN ('Dish') 
+      AND ts.blacklisted = FALSE 
+      AND ts.flag_valid = TRUE 
+      AND ts.collection_set_period_id IS NOT NULL 
+      AND ts.test_type_id IN (20)
+),
+data_network_category AS (
+    SELECT 
+        product_period, 
+        carrier, 
+        dsd_access_speed_median, 
+        dsd_effective_download_test_speed, 
+        dsd_throughput_max, 
+        percentage_access_success, 
+        percentage_task_success,
+        CASE 
+            WHEN best_network_type IN ('NR SA', 'NR NSA') THEN '5G' 
+            WHEN best_network_type IN ('NR SA, LTE', 'NR NSA, LTE') THEN 'Mixed-5G' 
+            WHEN best_network_type IN ('LTE') THEN 'LTE'
+            ELSE 'Non-LTE' 
+        END AS dl_network
+    FROM best_network_type
+)
+SELECT product_period,
+        carrier,
+        dl_network,
+        COUNT(*) AS count,
+        ROUND(100 * count(*) / sum(count(*)) over (partition by carrier),2) as dl_pct,
+        ROUND(median(dsd_access_speed_median)::numeric,0) as access_spd,
+        ROUND(cast(median(dsd_effective_download_test_speed)/1000 as numeric),1) as med_tput,
+        ROUND(cast(max(dsd_effective_download_test_speed)/1000 as numeric),1) as max_tput,
+        ROUND(cast(max(dsd_throughput_max)/1000 as numeric),1) as burst_tput,
+        ROUND(cast(avg(percentage_access_success) * 100 as numeric),1) as access,
+        ROUND(cast(avg(percentage_task_success) * 100 as numeric),1) as task
+FROM data_network_category
+Where carrier not in ('Dish')
+GROUP BY product_period, carrier, dl_network
+ORDER BY carrier, case when dl_network = '5G' then 1 when dl_network = 'Mixed-5G' then 2 when dl_network = 'LTE' then 3 when dl_network = 'Non-LTE' then 4 end
+'''
+df_dl_5g_comp = pd.read_sql_query(dl_5g_comp, con=os.getenv('RSR_SVC_CONN'))
+print(df_dl_5g_comp)
 
 
 #########################################################################################################################
