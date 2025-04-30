@@ -33,3 +33,22 @@ Wave 03:
 Wave 04:
 
 - Visualization with streamlit
+- option to download HTML
+
+Wave 05:
+
+- Query from Athena instead of Postgres
+
+
+Refactor ideas:
+
+- Create functions to get the data by csid curr or comp reduncing having two queries for the same logic.
+- Use a variable to filter by country UK or US. Instead of having to unselect the logic for each country
+
+Future ideas:
+- make functions from the queries.
+
+How to better query the data. Avoiding joins.
+
+Incorporate python insights. automate text of the report
+add comments

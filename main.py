@@ -283,6 +283,27 @@ ORDER BY carrier, case when dl_network = '5G' then 1 when dl_network = 'Mixed-5G
 df_dl_5g_comp = pd.read_sql_query(dl_5g_comp, con=os.getenv('RSR_SVC_CONN'))
 print(df_dl_5g_comp)
 
+# # download plot
+# #Initializes a plot using dl5g data frame
+# dlplot <- ggplot(dl5g, aes(y = dl_pct, x = product_period, fill = factor(dl_network),label = ifelse(dl_pct<3,"",paste0(dl_pct,"%")))) + 
+#   geom_col() + ylab("Share of DL tests (%)") + ggtitle("DL Network Category") +
+#   scale_fill_manual(values= dl_color) + 
+#   theme(strip.text = element_text(size = 12), plot.title = element_text(hjust = 0.5, size = 18, face ="bold"),
+#         legend.position = "bottom", legend.title = element_blank(),
+#         axis.title.x = element_blank(),
+#         axis.title.y = element_text(size = 12, margin = margin(t = 0, r = 2, b = 0, l = 0))) +
+#   geom_text(size = 4, position = position_stack(vjust = 0.5), color = "white") +
+#   facet_wrap(~carrier,ncol = 4)
+# dlplot
+
+# # DL network table for current market
+# dl5g_curr <- dl5g_curr[,-c(1)]
+# dl5g_curr[is.na(dl5g_curr)] <- 0
+# dl5g_curr$access <- ifelse(dl5g_curr$access == 0, paste0(0,"%"), dl5g_curr$access)
+# dl5g_curr$task <- ifelse(dl5g_curr$task == 0, paste0(0,"%"), dl5g_curr$task)
+# kable(dl5g_curr) %>% kable_styling(position = "center",bootstrap_options = "bordered", latex_options = "striped", font_size = 16, full_width = FALSE)
+```
+
 
 #########################################################################################################################
 #### Data Network Category (Download, Upload, LDRs)
@@ -367,6 +388,22 @@ ORDER BY carrier, CASE WHEN network = '5G' then 1 when network = 'Mixed-5G' then
 '''
 df_network_category_comp = pd.read_sql_query(network_category_comp, con=os.getenv('RSR_SVC_CONN'))
 # print(df_network_category_comp)
+
+# network_category <- rbind(network_category_curr, network_category_comp)
+# network_category<- reshape(network_category[,-c(4)], idvar = c("carrier","product_period"), timevar = "network", direction = "wide")
+# col_order <- c("product_period", "carrier", "percent.5G","percent.Mixed-5G", "percent.LTE","percent.Non-LTE")
+# col_order <- col_order[col_order %in% names(network_category)]
+# network_category<- network_category[,col_order]
+# network_category[is.na(network_category)] <-0
+# if(length(names(network_category))==6){
+#   names(network_category) <- c("period", "carrier", "5G (%)", "Mixed-5G (%)", "LTE (%)", "Non-LTE (%)")
+# } else {
+#   names(network_category) <- c("period", "carrier", "5G (%)", "Mixed-5G (%)", "LTE (%)")
+# }
+# network_category <- arrange(network_category, carrier)
+# kable(network_category, row.names = FALSE) %>% kable_styling(position = "center",bootstrap_options = "bordered", latex_options = "striped", font_size = 16, full_width = FALSE)
+# ```
+
 
 #######################################################################################################
 
