@@ -52,3 +52,8 @@ How to better query the data. Avoiding joins.
 
 Incorporate python insights. automate text of the report
 add comments
+
+- Maybe change the methodoly to calculate LTE/ Volte: test level data
+
+To do:
+- Table that has network type id comparing with network type name
