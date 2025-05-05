@@ -8,8 +8,8 @@ def run_sql_query(sql_query):
    
    return pd.read_sql_query(sql_query, con=os.getenv('RSR_SVC_CONN')) 
 
-def get_test_summary_curr(curr_csid):
-    ts_curr = f'''
+def get_test_summary_curr_comp(curr_csid, comp_csid):
+    ts_curr_comp = f'''
     SELECT
     date_trunc('seconds',ts.start_time)::timestamp without time zone as start_time,
     ca.time_zone,
@@ -39,11 +39,11 @@ def get_test_summary_curr(curr_csid):
     kt.name AS kit_type,
     rsc.name AS report_set_collector,
     (ts.start_time AT TIME ZONE 'utc' AT TIME ZONE ca.time_zone) AS local_time
-    FROM prod_ms_partitions.test_summary_{curr_csid} as ts
+    FROM prod_ms_partitions.test_summary_$VAR$ as ts
     LEFT JOIN md2.collection_areas ca on (ts.collection_area_id = ca.collection_area_id)
     LEFT JOIN md2.vi_collection_sets vcs on (ts.collection_set_id = vcs.collection_set_id)
     LEFT JOIN md2.carriers c on (ts.carrier_id = c.carrier_id)
-    LEFT JOIN prod_rsr_partitions.test_event_aggr_{curr_csid} tea on (ts.collection_set_id = tea.collection_set_id and ts.test_event_id = tea.test_event_id)
+    LEFT JOIN prod_rsr_partitions.test_event_aggr_$VAR$ tea on (ts.collection_set_id = tea.collection_set_id and ts.test_event_id = tea.test_event_id)
     LEFT JOIN md2.kit_types kt on (kt.kit_type_id = ts.kit_type_id)
     LEFT JOIN md2.report_set_collectors rsc on (rsc.report_set_collector_id = ts.report_set_collector_id)
     WHERE ts.test_type_id IN (19, 20, 23) 
@@ -53,13 +53,15 @@ def get_test_summary_curr(curr_csid):
     AND ts.carrier_id <> 478
     '''
 
-    df_ts_curr  = run_sql_query(ts_curr)
-    
-    return df_ts_curr
+    df_ts_curr  = run_sql_query(ts_curr_comp.replace("$VAR$", str(curr_csid)))
+    df_ts_comp  = run_sql_query(ts_curr_comp.replace("$VAR$", str(comp_csid)))
+    # print(f" CURRENT {df_ts_curr}, COMPARISON {df_ts_comp}")
+    return df_ts_curr, df_ts_comp
 
 
 
 if __name__ == "__main__":
     
-    get_test_summary_curr(curr_csid)
+    get_test_summary_curr_comp(curr_csid, comp_csid)
     print("Test summary current data fetched successfully.")
+   
