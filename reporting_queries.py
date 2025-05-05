@@ -58,10 +58,20 @@ def get_test_summary_curr_comp(curr_csid, comp_csid):
     # print(f" CURRENT {df_ts_curr}, COMPARISON {df_ts_comp}")
     return df_ts_curr, df_ts_comp
 
+def get_test_count(curr_csid):
+    
+    test_count = f'''
+    SELECT * 
+    FROM analytic.fn_dq_test_counts({curr_csid}) 
+    '''
+    df_test_count = run_sql_query(test_count)
+    return df_test_count
 
 
 if __name__ == "__main__":
     
     get_test_summary_curr_comp(curr_csid, comp_csid)
     print("Test summary current data fetched successfully.")
+    get_test_count(curr_csid)
+    print("Test count current data fetched successfully.")
    
