@@ -67,11 +67,83 @@ def get_test_count(curr_csid):
     df_test_count = run_sql_query(test_count)
     return df_test_count
 
+def get_dl_5g_curr_comp(curr_csid, comp_csid):
+    dl_5g_curr_comp = f'''
+    WITH best_network_type AS (
+        SELECT 
+            pro.product_period, 
+            c.friendly_name AS carrier, 
+            md2.fn_get_best_network_type(
+                ts.test_type_id, 
+                ts.net_types, 
+                tea.network_types, 
+                tea.call_network_type, 
+                tea.nr_status_filtered, 
+                tea.nr_bearer_status_filtered,
+                tea.nr_bearer_allocation_status_filtered,
+                ','
+            ) AS best_network_type,
+            dsd_access_speed_median, 
+            dsd_effective_download_test_speed, 
+            dsd_throughput_max, 
+            percentage_access_success, 
+            percentage_task_success
+        FROM prod_rsr_partitions.test_event_aggr_$VAR$ tea
+        JOIN prod_ms_partitions.test_summary_$VAR$ ts USING (test_event_id)
+        JOIN md2.carriers c ON (c.carrier_id = ts.carrier_id)
+        JOIN md2.product_periods pro USING (product_period_id)
+        WHERE c.friendly_name NOT IN ('Dish') 
+        AND ts.blacklisted = FALSE 
+        AND ts.flag_valid = TRUE 
+        AND ts.collection_set_period_id IS NOT NULL 
+        AND ts.test_type_id IN (20)
+    ),
+    data_network_category AS (
+        SELECT 
+            product_period, 
+            carrier, 
+            dsd_access_speed_median, 
+            dsd_effective_download_test_speed, 
+            dsd_throughput_max, 
+            percentage_access_success, 
+            percentage_task_success,
+            CASE 
+                WHEN best_network_type IN ('NR SA', 'NR NSA') THEN '5G' 
+                WHEN best_network_type IN ('NR SA, LTE', 'NR NSA, LTE') THEN 'Mixed-5G' 
+                WHEN best_network_type IN ('LTE') THEN 'LTE'
+                ELSE 'Non-LTE' 
+            END AS dl_network
+        FROM best_network_type
+    )
+    SELECT product_period,
+            carrier,
+            dl_network,
+            COUNT(*) AS count,
+            ROUND(100 * count(*) / sum(count(*)) over (partition by carrier),2) as dl_pct,
+            ROUND(median(dsd_access_speed_median)::numeric,0) as access_spd,
+            ROUND(cast(median(dsd_effective_download_test_speed)/1000 as numeric),1) as med_tput,
+            ROUND(cast(max(dsd_effective_download_test_speed)/1000 as numeric),1) as max_tput,
+            ROUND(cast(max(dsd_throughput_max)/1000 as numeric),1) as burst_tput,
+            ROUND(cast(avg(percentage_access_success) * 100 as numeric),1) as access,
+            ROUND(cast(avg(percentage_task_success) * 100 as numeric),1) as task
+    FROM data_network_category
+    Where carrier not in ('Dish')
+    GROUP BY product_period, carrier, dl_network
+    ORDER BY carrier, case when dl_network = '5G' then 1 when dl_network = 'Mixed-5G' then 2 when dl_network = 'LTE' then 3 when dl_network = 'Non-LTE' then 4 end
+    '''
+    df_dl_5g_curr = run_sql_query(dl_5g_curr_comp.replace("$VAR$", str(curr_csid)))
+    df_dl_5g_comp = run_sql_query(dl_5g_curr_comp.replace("$VAR$", str(comp_csid)))
+    # print(f" CURRENT {df_dl_5g_curr}, COMPARISON {df_dl_5g_comp}")
+    return df_dl_5g_curr, df_dl_5g_comp
+
+
 
 if __name__ == "__main__":
     
     get_test_summary_curr_comp(curr_csid, comp_csid)
     print("Test summary current data fetched successfully.")
     get_test_count(curr_csid)
-    print("Test count current data fetched successfully.")
+    print("Test count data fetched successfully.")
+    get_dl_5g_curr_comp(curr_csid, comp_csid)
+    print("Download 5G data fetched successfully.")
    
