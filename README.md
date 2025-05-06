@@ -58,3 +58,5 @@ add comments
 
 To do:
 - Table that has network type id comparing with network type name
+
+- Think better function to retrieve to data 

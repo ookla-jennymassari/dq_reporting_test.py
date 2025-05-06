@@ -141,8 +141,8 @@ def get_network_category_curr_comp(curr_csid, comp_csid):
     with best_network_type as (
     select pro.product_period, c.friendly_name as carrier,
     md2.fn_get_best_network_type(ts.test_type_id, ts.net_types, tea.network_types, tea.call_network_type, tea.nr_status_filtered, tea.nr_bearer_status_filtered,tea.nr_bearer_allocation_status_filtered,',') best_network_type
-    from prod_rsr_partitions.test_event_aggr_{curr_csid} tea
-    join prod_ms_partitions.test_summary_{curr_csid} ts using (test_event_id)
+    from prod_rsr_partitions.test_event_aggr_$VAR$ tea
+    join prod_ms_partitions.test_summary_$VAR$ ts using (test_event_id)
     join md2.carriers c on (c.carrier_id = ts.carrier_id)
     join md2.product_periods pro using(product_period_id)
     where c.friendly_name NOT IN ('Dish') AND  ts.blacklisted = false and ts.flag_valid = true and ts.collection_set_period_id is not null and ts.test_type_id in (20,19,26)
