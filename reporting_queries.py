@@ -136,6 +136,35 @@ def get_dl_5g_curr_comp(curr_csid, comp_csid):
     # print(f" CURRENT {df_dl_5g_curr}, COMPARISON {df_dl_5g_comp}")
     return df_dl_5g_curr, df_dl_5g_comp
 
+def get_network_category_curr_comp(curr_csid, comp_csid):
+    network_category_curr_comp = f'''
+    with best_network_type as (
+    select pro.product_period, c.friendly_name as carrier,
+    md2.fn_get_best_network_type(ts.test_type_id, ts.net_types, tea.network_types, tea.call_network_type, tea.nr_status_filtered, tea.nr_bearer_status_filtered,tea.nr_bearer_allocation_status_filtered,',') best_network_type
+    from prod_rsr_partitions.test_event_aggr_{curr_csid} tea
+    join prod_ms_partitions.test_summary_{curr_csid} ts using (test_event_id)
+    join md2.carriers c on (c.carrier_id = ts.carrier_id)
+    join md2.product_periods pro using(product_period_id)
+    where c.friendly_name NOT IN ('Dish') AND  ts.blacklisted = false and ts.flag_valid = true and ts.collection_set_period_id is not null and ts.test_type_id in (20,19,26)
+    ),
+    data_network_category as (
+    select product_period, carrier,
+        case when best_network_type in ('NR SA','NR NSA') then '5G'
+        when best_network_type in ('NR SA, LTE','NR NSA, LTE') then 'Mixed-5G'
+        when best_network_type in ('LTE') then 'LTE'
+        else 'Non-LTE' end as network
+    from best_network_type
+    )
+    select product_period, carrier, network, count(*) as count, round(100 * count(*) / sum(count(*)) over (partition by carrier),1) as percent
+    from data_network_category
+    group by product_period, carrier, network
+    order by carrier, case when network = '5G' then 1 when network = 'Mixed-5G' then 2 when network = 'LTE' then 3 when network = 'Non-LTE' then 4 end
+    '''
+
+    df_network_category_curr = run_sql_query(network_category_curr_comp.replace("$VAR$", str(curr_csid)))
+    df_network_category_comp = run_sql_query(network_category_curr_comp.replace("$VAR$", str(comp_csid)))
+    # print(f" CURRENT {df_network_category_curr}, COMPARISON {df_network_category_comp}")
+    return df_network_category_curr, df_network_category_comp
 
 
 if __name__ == "__main__":
@@ -146,4 +175,6 @@ if __name__ == "__main__":
     print("Test count data fetched successfully.")
     get_dl_5g_curr_comp(curr_csid, comp_csid)
     print("Download 5G data fetched successfully.")
+    get_network_category_curr_comp(curr_csid, comp_csid)
+    print("Network category data fetched successfully.")
    
