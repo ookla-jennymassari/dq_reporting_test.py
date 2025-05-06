@@ -25,7 +25,7 @@ Wave 03:
     * M2M VoLTE/VoNR/EPS Fallback - plot/ sheet
     * Mobile-to-Mobile Call Block - plot/ sheet
     * Mobile-to-Mobile Call Drop - plot/ sheet
-    
+
     * Download Throughput - plot/ sheet
     * Upload Throughput - plot/ sheet
     * Download Access Success - plot/ sheet
@@ -58,3 +58,7 @@ add comments
 
 To do:
 - Table that has network type id comparing with network type name
+
+plotly express library - take a look 
+- test UK market
+- test Boston, NY 
