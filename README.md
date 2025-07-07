@@ -17,7 +17,7 @@ Wave 02:
 
 Wave 03:
 
-- Create visualization (plot and spreadsheet)for:
+- Create visualization (plot and table)for:
     
     * DL Network Category - plot/ sheet
     * Data Network Category (Download, Upload, LDRs) - sheet
@@ -25,7 +25,7 @@ Wave 03:
     * M2M VoLTE/VoNR/EPS Fallback - plot/ sheet
     * Mobile-to-Mobile Call Block - plot/ sheet
     * Mobile-to-Mobile Call Drop - plot/ sheet
-    
+
     * Download Throughput - plot/ sheet
     * Upload Throughput - plot/ sheet
     * Download Access Success - plot/ sheet
@@ -34,11 +34,15 @@ Wave 03:
 Wave 04:
 
 - Visualization with streamlit
-- option to download HTML
+- Visualization with HTML
 
 Wave 05:
 
 - Query from Athena instead of Postgres
+
+Wave 06:
+
+- Automate the email 
 
 
 Refactor ideas:
@@ -47,14 +51,17 @@ Refactor ideas:
 - Use a variable to filter by country UK or US. Instead of having to unselect the logic for each country
 
 Future ideas:
-- make functions from the queries.
 
-How to better query the data. Avoiding joins.
+-How to better query the data. Avoiding joins.
 
-Incorporate python insights. automate text of the report
+-Incorporate python insights. automate text of the report
 add comments
 
 - Maybe change the methodoly to calculate LTE/ Volte: test level data
 
 To do:
 - Table that has network type id comparing with network type name
+
+plotly express library - take a look 
+- test UK market
+- test Boston, NY 

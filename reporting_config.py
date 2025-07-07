@@ -1,44 +1,9 @@
-# curr_csid = 12705
-# comp_csid = 12381
-
-
-# country = "US"
-# # country = "UK"
-
-# if (country == "US"):
-#     test_type_id = [19, 20, 26]
-#     num_col_wrap = 3
-    
-
-# if (country == "UK"):
-#     test_type_id = [19, 20]
-#     num_col_wrap = 4
-
-# test_type_id_str = ", ".join(map(str, test_type_id))
-
-
-
-# curr_csid = 12705
-
-# Boston
-# curr_csid = 12655
-
-#NY
-# curr_csid = 12678
-
-# London
-# curr_csid = 12854
-
-# comp_csid = 12381
-
-# Boston
-# comp_csid = 12331
-
-#NY
-# comp_csid = 12506
-
-# London
-# comp_csid = 12265
+dl_color_dict = {
+  '5G': '#009697', 
+  'Mixed-5G': '#3CB371', 
+  'LTE': '#58595b',
+  'Non-LTE': '#f4a460'
+}
 
 carrier_color_dict = {
                         'Verizon': '#b00000',
@@ -63,12 +28,7 @@ carrier_color_dict = {
                         'SK Telecom': '#FFBB00',
                         'LG U+': '#f80000'
                      }
-dl_color_dict = {
-  '5G': '#009697', 
-  'Mixed-5G': '#3CB371', 
-  'LTE': '#58595b',
-  'Non-LTE': '#f4a460'
-}
+                     
 
 carrier_color_dict_reporting = {
                                 'Salt': '#1A1A1A',
@@ -87,4 +47,5 @@ carrier_color_dict_reporting = {
                                 'SK Telecom': '#FF9933',
                                 'Dish': '#F87217'
                             }
+
 

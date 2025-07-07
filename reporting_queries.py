@@ -6,10 +6,47 @@ from reporting_config import *
 load_dotenv()
 
 
-
 def run_sql_query(sql_query):
    
    return pd.read_sql_query(sql_query, con=os.getenv('RSR_SVC_CONN')) 
+
+
+def get_previous_csid(curr_csid):
+    retrieve_csid_comp = f""" 
+    SELECT * 
+    FROM analytic.fn_get_previous_csid({curr_csid})
+    """
+
+    comp_csid_df = run_sql_query(retrieve_csid_comp)
+    comp_csid = comp_csid_df.iloc[0]['fn_get_previous_csid']
+    return comp_csid
+
+
+def get_country(curr_csid):
+    find_country = f'''
+    SELECT collection_type_id 
+    FROM prod_ms_partitions.test_summary_{curr_csid};
+    '''
+
+    df_country = run_sql_query(find_country)
+
+    collection_type_id = df_country['collection_type_id'].iloc[0]
+
+    if collection_type_id == 5:
+        country = "UK"
+        test_type_id = [19, 20]
+        num_col_wrap = 4
+    elif collection_type_id == 1:
+        country = "US"
+        test_type_id = [19, 20, 26]
+        num_col_wrap = 3
+    else:
+        raise ValueError("Country not found")
+
+    test_type_id_str = ", ".join(map(str, test_type_id))
+
+    return country, test_type_id, num_col_wrap, test_type_id_str
+
 
 def get_test_summary_curr_comp(curr_csid, comp_csid):
     ts_curr_comp = f'''
@@ -58,8 +95,9 @@ def get_test_summary_curr_comp(curr_csid, comp_csid):
 
     df_ts_curr  = run_sql_query(ts_curr_comp.replace("$VAR$", str(curr_csid)))
     df_ts_comp  = run_sql_query(ts_curr_comp.replace("$VAR$", str(comp_csid)))
-    # print(f" CURRENT {df_ts_curr}, COMPARISON {df_ts_comp}")
+
     return df_ts_curr, df_ts_comp
+
 
 def get_test_count(curr_csid):
     
@@ -69,6 +107,7 @@ def get_test_count(curr_csid):
     '''
     df_test_count = run_sql_query(test_count)
     return df_test_count
+
 
 def get_dl_5g_curr_comp(curr_csid, comp_csid):
     dl_5g_curr_comp = f'''
@@ -136,8 +175,9 @@ def get_dl_5g_curr_comp(curr_csid, comp_csid):
     '''
     df_dl_5g_curr = run_sql_query(dl_5g_curr_comp.replace("$VAR$", str(curr_csid)))
     df_dl_5g_comp = run_sql_query(dl_5g_curr_comp.replace("$VAR$", str(comp_csid)))
-    # print(f" CURRENT {df_dl_5g_curr}, COMPARISON {df_dl_5g_comp}")
+
     return df_dl_5g_curr, df_dl_5g_comp
+
 
 def get_network_category_curr_comp(curr_csid, comp_csid):
     network_category_curr_comp = f'''
@@ -166,19 +206,12 @@ def get_network_category_curr_comp(curr_csid, comp_csid):
 
     df_network_category_curr = run_sql_query(network_category_curr_comp.replace("$VAR$", str(curr_csid)))
     df_network_category_comp = run_sql_query(network_category_curr_comp.replace("$VAR$", str(comp_csid)))
-    # print(f" CURRENT {df_network_category_curr}, COMPARISON {df_network_category_comp}")
+
     return df_network_category_curr, df_network_category_comp
 
-if __name__ == "__main__":
-    
-    get_test_summary_curr_comp(curr_csid, comp_csid)
-    print("Test summary current data fetched successfully.")
-    get_test_count(curr_csid)
-    print("Test count data fetched successfully.")
-    get_dl_5g_curr_comp(curr_csid, comp_csid)
-    print("Download 5G data fetched successfully.")
-    get_network_category_curr_comp(curr_csid, comp_csid)
-    print("Network category data fetched successfully.")
+
+
+
 
 
 
